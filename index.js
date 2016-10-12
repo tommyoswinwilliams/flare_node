@@ -16,24 +16,49 @@ firebase.initializeApp(config);
 const ref = firebase.database().ref();
 
 var friendsTokensArray = [];
+// var friendsFacebookIdsArray = [];
 var friendsFacebookIdsArrayTest = ['10154479520857387',  '10157474917765252',  '10153684774890666',  '10154522964878397',  '10155322526784782']
 
 function listenForNotificationRequests() {
   const notifications = ref.child('notifications');
   notifications.on('child_added', (notificationSnapshot) => {
     const notification = notificationSnapshot.val();
-    // console.log(notification.friendsFacebookIds);
-    getFriendsFacebookIds(
-      convertFacebookIdsToTokens(friendsFacebookIds,
-        eachSendNotificationToUser(friendsTokensArray)
-      )
-    )
+    console.log("listenForNotificationRequests");
+    console.log(notification.friendsFacebookIds);
+    getFriendsFacebookIds(notification, function (ids) {
+      convertFacebookIdsToTokens(ids, function (tokens) {
+        eachSendNotificationToUser(tokens)
+      })
+    })
   }, (error) => {
     console.error(error);
   });
 }
 
+function getFriendsFacebookIds(notification, callback) {
+    console.log("getFriendsFacebookIds");
+    console.log(notification.friendsFacebookIds);
+    callback(notification.friendsFacebookIds)
+}
+
+function convertFacebookIdsToTokens(friendsFacebookIds, callback) {
+  console.log("convertFacebookIdsToTokens");
+  console.log(friendsFacebookIds);
+  friendsFacebookIds.forEach(id => {
+    const tokens = ref.child('tokens');
+    tokens.on('value', (tokenSnapshot) => {
+      const token = tokenSnapshot.val()
+      friendsTokensArray.push(token[id].tokenID);
+      console.log(friendsTokensArray);
+    })
+  });
+  console.log(friendsTokensArray);
+  callback(friendsTokensArray)
+}
+
 function eachSendNotificationToUser(friendsTokensArray) {
+  // console.log("eachSendNotificationToUser");
+  // console.log(friendsTokensArray);
   friendsTokensArray.forEach(token => {
     sendNotificationToUser(
       token,
@@ -46,30 +71,6 @@ function eachSendNotificationToUser(friendsTokensArray) {
   })
 }
 
-function getFriendsFacebookIds(callback) {
-  const notifications = ref.child('notifications');
-  notifications.on('value', (notificationSnapshot) => {
-    const notification = notificationSnapshot.val();
-  })
-  console.log(notification.friendsFacebookIds);
-  callback(notification.friendsFacebookIds)
-}
-
-function convertFacebookIdsToTokens(friendsFacebookIds, callback) {
-  console.log(friendsFacebookIds);
-  friendsFacebookIds.forEach(id => {
-    const tokens = ref.child('tokens');
-    tokens.on('value', (tokenSnapshot) => {
-      // console.log(tokenSnapshot.val());
-      const token = tokenSnapshot.val()
-      console.log(token[id]);
-      console.log(token[id].tokenID);
-      friendsTokensArray.push(token[id].tokenID);
-      console.log(friendsTokensArray);
-    })
-    callback(friendsTokensArray)
-  });
-}
 
 function sendNotificationToUser(username, title, message, onSuccess) {
   console.log(`User ${username} created the message "${message}"`);
