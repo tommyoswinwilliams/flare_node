@@ -21,9 +21,8 @@ function listenForNotificationRequests() {
   const notifications = ref.child('notifications');
   notifications.on('child_added', (notificationSnapshot) => {
     const notification = notificationSnapshot.val();
-    var friendsFacebookIdsArray = notification.friendsFacebookIds
-    setTimeout(function(){
-      convertFacebookIdsToTokens(friendsFacebookIdsArray)
+    // console.log(notification.friendsFacebookIds);
+      convertFacebookIdsToTokens(notification.friendsFacebookIds)
       friendsTokensArray.forEach(token => {
         sendNotificationToUser(
           token,
@@ -34,22 +33,21 @@ function listenForNotificationRequests() {
           }
         );
       })
-      ; }, 3000);
-
   }, (error) => {
     console.error(error);
   });
 }
 
 function convertFacebookIdsToTokens(friendsFacebookIds) {
+  console.log(friendsFacebookIds);
   friendsFacebookIds.forEach(id => {
     const tokens = ref.child('tokens');
     tokens.on('value', (tokenSnapshot) => {
       // console.log(tokenSnapshot.val());
       const token = tokenSnapshot.val()
-      console.log(token[id].tokenID);
+      // console.log(token[id].tokenID);
       friendsTokensArray.push(token[id].tokenID);
-      console.log(friendsTokensArray);
+      // console.log(friendsTokensArray);
     })
   });
 }
