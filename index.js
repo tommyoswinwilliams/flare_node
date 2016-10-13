@@ -27,20 +27,7 @@ function listenForNotificationRequests() {
     console.log(notification.friendsFacebookIds);
     getFriendsFacebookIds(notification, function (ids) {
       convertFacebookIdsToTokens(ids, function (tokens) {
-        console.log(tokens);
-        tokens.forEach(token => {
-          console.log(token);
-          console.log(notification.subtitle);
-          sendNotificationToUser(
-            token,
-            notification.subtitle,
-            notification.title,
-            () => {
-              // requestSnapshot.ref.remove();
-            }
-          );
-        })
-        // eachSendNotificationToUser(tokens)
+        eachSendNotificationToUser(tokens)
       })
     })
   }, (error) => {
@@ -62,23 +49,34 @@ function convertFacebookIdsToTokens(friendsFacebookIds, callback) {
     tokens.on('value', (tokenSnapshot) => {
       const token = tokenSnapshot.val()
       friendsTokensArray.push(token[id].tokenId);
-      // console.log(friendsTokensArray);
       console.log(friendsTokensArray);
-      callback(friendsTokensArray)
     })
   });
+  console.log(friendsTokensArray);
+  callback(friendsTokensArray)
 }
 
-// function eachSendNotificationToUser(friendsTokensArray) {
-//
-// }
+function eachSendNotificationToUser(friendsTokensArray) {
+  // console.log("eachSendNotificationToUser");
+  // console.log(friendsTokensArray);
+  friendsTokensArray.forEach(token => {
+    sendNotificationToUser(
+      token,
+      notification.subtitle,
+      notification.title,
+      () => {
+        // requestSnapshot.ref.remove();
+      }
+    );
+  })
+}
 
 
 function sendNotificationToUser(username, title, message, onSuccess) {
   console.log(`User ${username} created the message "${message}"`);
   // Object.keys(users).forEach(user => {
   //   if (user !== username) {
-      console.log(`Sending notification to user`);
+      console.log(`Sending notification to user Tim`);
       request({
         url: 'https://fcm.googleapis.com/fcm/send',
         method: 'POST',
@@ -91,7 +89,7 @@ function sendNotificationToUser(username, title, message, onSuccess) {
             title: title,
             body: message
           },
-          to: 'djZle4-WuPo:APA91bFEk6rSIKktD-LUBwN0ii-pTb9DGAN87a90kc6tRMvz59--pivjpq3BvyfUc_wiksPbHEUEAoAdfHqeS6jpLpBof5CS-b0wK47jRQ1KNvRNykfq42avGv1JhkjxflJYoIS8_LjB',
+          to: username,
           priority: 'high',
           content_available: true
         })
