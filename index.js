@@ -3,11 +3,11 @@ const request = require('request');
 const express = require('express');
 const bodyParser = require('body-parser')
 
-const API_KEY = process.env.FIREBASE_API_KEY;
-const SERVER_KEY = process.env.FIREBASE_SERVER_KEY;
+const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
+const FIREBASE_SERVER_KEY = process.env.FIREBASE_SERVER_KEY;
 
 const config = {
-  apiKey: process.env.FIREBASE_API_KEY,
+  apiKey: FIREBASE_API_KEY,
   authDomain: 'flare-1ef4b.firebaseapp.com',
   databaseURL: 'https://flare-1ef4b.firebaseio.com/',
   storageBucket: 'flare-1ef4b.appspot.com',
@@ -32,7 +32,7 @@ function listenForNotificationRequests() {
 }
 
 function getFriendsFacebookIds(notification, callback) {
-    callback(notification.friendsFacebookIds, notification.flareId)
+  callback(notification.friendsFacebookIds, notification.flareId);
 }
 
 function convertFacebookIdsToTokens(friendsFacebookIds, flareId, callback) {
@@ -41,7 +41,7 @@ function convertFacebookIdsToTokens(friendsFacebookIds, flareId, callback) {
     tokens.on('value', (tokenSnapshot) => {
       const token = tokenSnapshot.val()
       if (token[id]) {
-        callback(token[id].tokenId, flareId)
+        callback(token[id].tokenId, flareId);
       }
     })
   });
@@ -63,21 +63,21 @@ function getFlareSend(token, flareId) {
   })
 }
 
-function sendNotificationToUser(username, title, message, onSuccess) {
+function sendNotificationToUser(token, title, message, onSuccess) {
   console.log(`User ${title} created the message "${message}"`);
   request({
     url: 'https://fcm.googleapis.com/fcm/send',
     method: 'POST',
     headers: {
       'Content-Type' : 'application/json',
-      'Authorization': `key=${SERVER_KEY}`
+      'Authorization': `key=${FIREBASE_SERVER_KEY}`
     },
     body: JSON.stringify({
       notification: {
         title: title,
         body: message
       },
-      to: username,
+      to: token,
       priority: 'high',
       content_available: true
     })
@@ -96,7 +96,7 @@ function sendNotificationToUser(username, title, message, onSuccess) {
 // start listening
 listenForNotificationRequests();
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const app = express();
 
 const users = {};
