@@ -1,7 +1,8 @@
 const firebase = require('firebase');
 const request = require('request');
 const express = require('express');
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
+// const events = require('events');
 
 const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
 const FIREBASE_SERVER_KEY = process.env.FIREBASE_SERVER_KEY;
@@ -19,9 +20,10 @@ const ref = firebase.database().ref();
 function listenForNotificationRequests() {
   const notifications = ref.child('notifications');
   notifications.on('child_added', (notificationSnapshot) => {
-    const notification = notificationSnapshot.val();
+    var notification = notificationSnapshot.val();
     getFriendsFacebookIds(notification, function (ids, flareId) {
       notificationSnapshot.ref.remove()
+      console.log(notification);
       convertFacebookIdsToTokens(ids, flareId, function (token, flareId) {
         getFlareSend(token, flareId)
       })
@@ -37,27 +39,30 @@ function getFriendsFacebookIds(notification, callback) {
 
 function convertFacebookIdsToTokens(friendsFacebookIds, flareId, callback) {
   friendsFacebookIds.forEach(id => {
-    const tokens = ref.child('tokens');
+    if (ref.child('tokens').orderByKey().equalTo(id)) {
+    const tokens = ref.child('tokens').orderByKey().equalTo(id);
     tokens.on('value', (tokenSnapshot) => {
       const token = tokenSnapshot.val()
-      if (token[id]) {
+          if (token) {
         callback(token[id].tokenId, flareId);
-      }
-    })
-  });
-}
+        }
+      })
+    }
+  })
+  }
 
 function getFlareSend(token, flareId) {
-  const flareUid = flareId.replace('https://flare-1ef4b.firebaseio.com/flares/', '')
-  const flares = ref.child('flares');
+  var flareUid = flareId.replace('https://flare-1ef4b.firebaseio.com/flares/', '')
+  const flares = ref.child('flares').orderByKey().equalTo(flareUid);
 
   flares.on('value', (flareSnapshot) => {
-    const flare = flareSnapshot.val()
+    const flare = flareSnapshot.val()[flareUid]
     sendNotificationToUser(
       token,
-      flare[flareUid].subtitle,
-      flare[flareUid].title, () => {
+      flare.subtitle,
+      flare.title, () => {
         console.log('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥');
+        // listenForNotificationRequests();
       }
     );
   })
@@ -92,9 +97,8 @@ function sendNotificationToUser(token, title, message, onSuccess) {
     }
   });
 }
-
-// start listening
-listenForNotificationRequests();
+//
+// var emitter = new events.eventEmitter();
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -114,3 +118,9 @@ app.post('/token', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
 });
+
+
+// start listening
+// app.on('listening', () => {
+  listenForNotificationRequests();
+// })
