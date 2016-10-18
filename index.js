@@ -60,7 +60,8 @@ function getFlareSend(token, flareId) {
     sendNotificationToUser(
       token,
       flare.subtitle,
-      flare.title, () => {
+      flare.title,
+      flareUid, () => {
         console.log('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥');
         // listenForNotificationRequests();
       }
@@ -68,7 +69,7 @@ function getFlareSend(token, flareId) {
   })
 }
 
-function sendNotificationToUser(token, title, message, onSuccess) {
+function sendNotificationToUser(token, title, message, flareUid, onSuccess) {
   console.log(`User ${title} created the message "${message}"`);
   request({
     url: 'https://fcm.googleapis.com/fcm/send',
@@ -84,7 +85,10 @@ function sendNotificationToUser(token, title, message, onSuccess) {
       },
       to: token,
       priority: 'high',
-      content_available: true
+      content_available: true,
+      data: {
+        flare: flareUid
+      }
     })
   }, (error, response, body) => {
     console.log(body);
