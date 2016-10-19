@@ -81,7 +81,9 @@ function sendNotificationToUser(token, title, message, flareUid, onSuccess) {
     body: JSON.stringify({
       notification: {
         title: title,
-        body: message
+        body: message,
+        sound: 'ping.aiff',
+        badge: 1
       },
       to: token,
       priority: 'high',
