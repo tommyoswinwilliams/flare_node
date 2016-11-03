@@ -41,7 +41,7 @@ function convertFacebookIdsToTokens(friendsFacebookIds, flareId, callback) {
   friendsFacebookIds.forEach(id => {
     if (ref.child('tokens').orderByKey().equalTo(id)) {
     const tokens = ref.child('tokens').orderByKey().equalTo(id);
-    tokens.on('value', (tokenSnapshot) => {
+    tokens.once('value', (tokenSnapshot) => {
       const token = tokenSnapshot.val()
           if (token) {
         callback(token[id].tokenId, flareId);
@@ -54,8 +54,7 @@ function convertFacebookIdsToTokens(friendsFacebookIds, flareId, callback) {
 function getFlareSend(token, flareId) {
   var flareUid = flareId.replace('https://flare-1ef4b.firebaseio.com/flares/', '')
   const flares = ref.child('flares').orderByKey().equalTo(flareUid);
-
-  flares.on('value', (flareSnapshot) => {
+  flares.once('value', (flareSnapshot) => {
     const flare = flareSnapshot.val()[flareUid]
     sendNotificationToUser(
       token,
@@ -64,6 +63,7 @@ function getFlareSend(token, flareId) {
       flareUid, () => {
         console.log('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥');
         // listenForNotificationRequests();
+
       }
     );
   })
