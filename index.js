@@ -16,6 +16,7 @@ const config = {
 
 firebase.initializeApp(config);
 const ref = firebase.database().ref();
+const flaresRef = ref.child('flares')
 
 function listenForNotificationRequests() {
   const notifications = ref.child('notifications');
@@ -103,6 +104,45 @@ function sendNotificationToUser(token, title, message, flareUid, onSuccess) {
     }
   });
 }
+
+function postScheduledFlares() {
+  setInterval(function() {
+    const scheduledFlaresRef = ref.child('scheduledFlares').orderByChild('startTimestamp').endAt((new Date).getTime())
+    scheduledFlaresRef.once('value', (scheduledFlaresSnapshot) => {
+      var scheduledFlare = scheduledFlaresSnapshot.val();
+      for(i in scheduledFlare) { flaresRef.push(scheduledFlare[i]) }
+    }, (error) => {
+      console.error(error);
+    });
+  }, 60 * 1000); // 60 * 1000 milsec
+}
+
+function archiveExpiredFlares() {
+  setInterval(function() {
+    var durationMilliseconds = 14400000
+    ref.child('flareConstants').once('value', (snap) => {
+      const duration = snap.val()['duration']
+      var durationMilliseconds = duration * 60000
+    });
+    const archivedFlaresRef = ref.child('archivedFlares')
+    var archiveTimestampLimit = (new Date).getTime() - durationMilliseconds
+    flaresRef.orderByChild('timestamp').endAt(archiveTimestampLimit).once('value', (expiredFlaresSnapshot) => {
+    var expiredFlares = expiredFlaresSnapshot.val()
+    for (var flareId in expiredFlares){
+    if (expiredFlares.hasOwnProperty(flareId)) {
+       console.log("Key is " + flareId + ", value is" + expiredFlares[flareId]);
+       archivedFlaresRef.child(flareId).set( expiredFlares[flareId], function(err) {
+            if( err ) { console.error(err); }
+            else { flaresRef.child(flareId).remove(); }
+            });
+     }
+   }
+    }, (error) => {
+      console.error(error);
+    });
+  }, 60 * 1000); // 60 * 1000 milsec
+}
+
 //
 // var emitter = new events.eventEmitter();
 
@@ -129,4 +169,6 @@ app.listen(PORT, () => {
 // start listening
 // app.on('listening', () => {
   listenForNotificationRequests();
+  postScheduledFlares();
+  archiveExpiredFlares()
 // })
