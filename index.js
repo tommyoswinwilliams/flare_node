@@ -151,7 +151,7 @@ function postScheduledFlares() {
 }
 
 function archiveExpiredFlares() {
-  // setInterval(function() {
+  setInterval(function() {
     var durationMilliseconds = 14400000
 
     ref.child('flareConstants').once('value', (snap) => {
@@ -166,33 +166,12 @@ function archiveExpiredFlares() {
     flaresRef.orderByChild('timestamp').endAt(archiveTimestampLimit).once('value', (expiredFlaresSnapshot) => {
       expiredFlaresSnapshot.forEach(function(childSnap) {
         archivedFlaresRef.child(childSnap.key).set( childSnap.val(), function(err) {
-          flaresRef.child(childSnap.key).remove();
-          console.log("deleted the flare:", childSnap.key);
-          // if( err ) { console.error(err); }
-          // else { console.log("deleted the flare:", flareId); }
+          if( err ) { console.error(err); }
+          else { flaresRef.child(childSnap.key).remove(); }
         });
     })
   })
-
-
-
-
-    // var expiredFlares = expiredFlaresSnapshot.val()
-    // for (var flareId in expiredFlares) {
-    // // if (expiredFlares.hasOwnProperty(flareId)) {
-    //   console.log("Key is " + flareId + ", value is" + expiredFlares[flareId]);
-    //   archivedFlaresRef.child(flareId).set( expiredFlares[flareId], function(err) {
-    //     console.log("deleted the flare:", flareId);
-    //     // if( err ) { console.error(err); }
-    //     // else { console.log("deleted the flare:", flareId); }
-    //   });
-    //   // flaresRef.child(flareId).remove();
-    // // }
-
-    // }, (error) => {
-    //   console.error(error);
-    // });
-  // }, 60 * 1000); // 60 * 1000 milsec
+}, 60 * 1000); // 60 * 1000 milsec
 }
 
 //
