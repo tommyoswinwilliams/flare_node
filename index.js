@@ -50,7 +50,7 @@ function convertFacebookIdsToTokens(friendsFacebookIds, flareId, callback) {
       })
     }
   })
-  }
+}
 
 function getFlareSend(token, flareId) {
   var flareUid = flareId.replace('https://flare-1ef4b.firebaseio.com/flares/', '')
@@ -61,17 +61,50 @@ function getFlareSend(token, flareId) {
       token,
       flare.subtitle,
       flare.title,
-      flareUid, () => {
-        console.log('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥');
-        // listenForNotificationRequests();
-
-      }
+      flareUid,
+      () => { console.log('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥'); }
     );
   })
 }
 
+
+
+function sendChatNotification() {
+  flaresRef.on('child_added', (flareSnapshot) => {
+    var flareRef = flareSnapshot.ref;
+    flareRef.child("messages").on("child_added", (messageSnapshot) => {
+      var flareID = flareSnapshot.key;
+      convertFacebookIdsToTokens([flareSnapshot.val().facebookID], null, (token, flareID) => {
+        // console.log("*******", flareOwnerToken);
+        var messageText = messageSnapshot.val().text;
+        var senderID = messageSnapshot.val().senderId;
+        console.log("****",token);
+
+
+        sendNotificationToUser(
+          token,
+          `New message`,
+          messageText,
+          flareID,
+          () => { console.log("Chat notification sent"); }
+        );
+      })
+
+
+      // sendNotificationToUser(
+      //   timToken,
+      //   `New message`,
+      //   messageText,
+      //   flareID,
+      //   () => { console.log("Chat notification sent"); }
+      // );
+    });
+    // console.log(snapshot.parent().key());
+  })
+}
+
 function sendNotificationToUser(token, title, message, flareUid, onSuccess) {
-  console.log(`User ${title} created the message "${message}"`);
+  console.log(`title: ${title}, message: "${message}"`);
   request({
     url: 'https://fcm.googleapis.com/fcm/send',
     method: 'POST',
@@ -94,7 +127,7 @@ function sendNotificationToUser(token, title, message, flareUid, onSuccess) {
       }
     })
   }, (error, response, body) => {
-    console.log(body);
+    // console.log(body);
     if (error || (response.body && response.body.error)) {
       console.error(error);
     } else if (response.statusCode >= 400) {
@@ -170,5 +203,6 @@ app.listen(PORT, () => {
 // app.on('listening', () => {
   listenForNotificationRequests();
   postScheduledFlares();
-  archiveExpiredFlares()
+  archiveExpiredFlares();
+  sendChatNotification();
 // })
