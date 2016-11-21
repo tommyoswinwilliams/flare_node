@@ -81,23 +81,14 @@ function sendChatNotification() {
         // console.log("****",token);
 
 
-        // sendNotificationToUser(
-        //   token,
-        //   `New message`,
-        //   messageText,
-        //   flareID,
-        //   () => { console.log("Chat notification sent"); }
-        // );
+        sendNotificationToUser(
+          token,
+          `New message`,
+          messageText,
+          flareID,
+          () => { console.log("Chat notification sent"); }
+        );
       })
-
-
-      // sendNotificationToUser(
-      //   timToken,
-      //   `New message`,
-      //   messageText,
-      //   flareID,
-      //   () => { console.log("Chat notification sent"); }
-      // );
     });
     // console.log(snapshot.parent().key());
   })
