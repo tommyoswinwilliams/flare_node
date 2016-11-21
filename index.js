@@ -78,16 +78,16 @@ function sendChatNotification() {
         // console.log("*******", flareOwnerToken);
         var messageText = messageSnapshot.val().text;
         var senderID = messageSnapshot.val().senderId;
-        console.log("****",token);
+        // console.log("****",token);
 
 
-        sendNotificationToUser(
-          token,
-          `New message`,
-          messageText,
-          flareID,
-          () => { console.log("Chat notification sent"); }
-        );
+        // sendNotificationToUser(
+        //   token,
+        //   `New message`,
+        //   messageText,
+        //   flareID,
+        //   () => { console.log("Chat notification sent"); }
+        // );
       })
 
 
@@ -151,29 +151,48 @@ function postScheduledFlares() {
 }
 
 function archiveExpiredFlares() {
-  setInterval(function() {
+  // setInterval(function() {
     var durationMilliseconds = 14400000
+
     ref.child('flareConstants').once('value', (snap) => {
       const duration = snap.val()['duration']
       var durationMilliseconds = duration * 60000
     });
+
     const archivedFlaresRef = ref.child('archivedFlares')
+
     var archiveTimestampLimit = (new Date).getTime() - durationMilliseconds
+
     flaresRef.orderByChild('timestamp').endAt(archiveTimestampLimit).once('value', (expiredFlaresSnapshot) => {
-    var expiredFlares = expiredFlaresSnapshot.val()
-    for (var flareId in expiredFlares){
-    if (expiredFlares.hasOwnProperty(flareId)) {
-       console.log("Key is " + flareId + ", value is" + expiredFlares[flareId]);
-       archivedFlaresRef.child(flareId).set( expiredFlares[flareId], function(err) {
-            if( err ) { console.error(err); }
-            else { flaresRef.child(flareId).remove(); }
-            });
-     }
-   }
-    }, (error) => {
-      console.error(error);
-    });
-  }, 60 * 1000); // 60 * 1000 milsec
+      expiredFlaresSnapshot.forEach(function(childSnap) {
+        archivedFlaresRef.child(childSnap.key).set( childSnap.val(), function(err) {
+          flaresRef.child(childSnap.key).remove();
+          console.log("deleted the flare:", childSnap.key);
+          // if( err ) { console.error(err); }
+          // else { console.log("deleted the flare:", flareId); }
+        });
+    })
+  })
+
+
+
+
+    // var expiredFlares = expiredFlaresSnapshot.val()
+    // for (var flareId in expiredFlares) {
+    // // if (expiredFlares.hasOwnProperty(flareId)) {
+    //   console.log("Key is " + flareId + ", value is" + expiredFlares[flareId]);
+    //   archivedFlaresRef.child(flareId).set( expiredFlares[flareId], function(err) {
+    //     console.log("deleted the flare:", flareId);
+    //     // if( err ) { console.error(err); }
+    //     // else { console.log("deleted the flare:", flareId); }
+    //   });
+    //   // flaresRef.child(flareId).remove();
+    // // }
+
+    // }, (error) => {
+    //   console.error(error);
+    // });
+  // }, 60 * 1000); // 60 * 1000 milsec
 }
 
 //
@@ -202,7 +221,7 @@ app.listen(PORT, () => {
 // start listening
 // app.on('listening', () => {
   listenForNotificationRequests();
-  postScheduledFlares();
+  // postScheduledFlares();
   archiveExpiredFlares();
   sendChatNotification();
 // })
