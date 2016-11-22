@@ -120,7 +120,7 @@ function sendBoostNotification() {
               null,
               `Someone has boosted your flare 🔥`,
               flareID,
-              () => { console.log("Chat notification sent"); }
+              () => { console.log("Boost notification sent"); }
             );
           }
         })
