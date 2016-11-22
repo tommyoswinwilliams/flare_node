@@ -91,6 +91,44 @@ function sendChatNotification() {
   })
 }
 
+function sendBoostNotification() {
+  flaresRef.on('child_added', (flareSnapshot) => {
+    var flareRef = flareSnapshot.ref
+    flareRef.child('boosts').on('child_added', (boostSnapshot) => {
+      var flareID = flareSnapshot.key
+      convertFacebookIdsToTokens([flareSnapshot.val().facebookID], null, (token, flareID) => {
+        // [flareSnapshot.val().facebookID]
+        // console.log("*******", flareOwnerToken);
+        var boosterID = boostSnapshot.key;
+        // console.log("*******", token);
+        // console.log("****",token);
+
+        var boosterRef = firebase.database().ref('users').child(boosterID)
+        boosterRef.once('value', (boosterSnapshot) => {
+          if (boosterSnapshot.val()) {
+            var boosterName = boosterSnapshot.val().fullname;
+            sendNotificationToUser(
+              token,
+              null,
+              `${boosterName} has boosted your flare 🔥`,
+              flareID,
+              () => { console.log("Chat notification sent"); }
+            );
+          } else {
+            sendNotificationToUser(
+              token,
+              null,
+              `Someone has boosted your flare 🔥`,
+              flareID,
+              () => { console.log("Chat notification sent"); }
+            );
+          }
+        })
+      })
+    })
+  })
+}
+
 function sendNotificationToUser(token, title, message, flareUid, onSuccess) {
   console.log(`title: ${title}, message: "${message}"`);
   request({
@@ -196,4 +234,5 @@ app.listen(PORT, () => {
   postScheduledFlares();
   archiveExpiredFlares();
   sendChatNotification();
+  sendBoostNotification();
 // })
