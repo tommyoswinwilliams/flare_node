@@ -2,10 +2,7 @@ const firebase = require('firebase');
 const request = require('request');
 const express = require('express');
 const bodyParser = require('body-parser');
-// const events = require('events');
-
-const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
-const FIREBASE_SERVER_KEY = process.env.FIREBASE_SERVER_KEY;
+const { FIREBASE_API_KEY, FIREBASE_SERVER_KEY } = require('./secrets');
 
 const config = {
   apiKey: FIREBASE_API_KEY,
