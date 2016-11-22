@@ -1,2 +1,3 @@
 app.yaml
 secrets/
+node_modules/
