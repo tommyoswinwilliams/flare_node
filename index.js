@@ -130,8 +130,13 @@ function postScheduledFlares() {
   setInterval(function() {
     const scheduledFlaresRef = ref.child('scheduledFlares').orderByChild('startTimestamp').endAt((new Date).getTime())
     scheduledFlaresRef.once('value', (scheduledFlaresSnapshot) => {
-      var scheduledFlare = scheduledFlaresSnapshot.val();
-      for(i in scheduledFlare) { flaresRef.push(scheduledFlare[i]) }
+      // var scheduledFlare = scheduledFlaresSnapshot.val();
+      scheduledFlaresSnapshot.forEach(function(childSnap) {
+        flaresRef.child(childSnap.key).set(childSnap.val(), function(err) {
+          if( err ) { console.error(err); }
+          else { ref.child('scheduledFlares').child(childSnap.key).remove(); }
+        });
+      })
     }, (error) => {
       console.error(error);
     });
@@ -188,7 +193,7 @@ app.listen(PORT, () => {
 // start listening
 // app.on('listening', () => {
   listenForNotificationRequests();
-  // postScheduledFlares();
+  postScheduledFlares();
   archiveExpiredFlares();
   sendChatNotification();
 // })
